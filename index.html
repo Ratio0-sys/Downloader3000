@@ -60,6 +60,45 @@
             margin-bottom: 10px;
         }
 
+        /* ===== КНОПКА СКАЧАТЬ ===== */
+        .download-section {
+            text-align: center;
+            margin: 30px 0 40px 0;
+        }
+
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #f7971e, #ffd200);
+            color: #1a1a2e;
+            font-size: 1.4rem;
+            font-weight: bold;
+            padding: 18px 50px;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 40px rgba(255, 215, 0, 0.3);
+            border: none;
+            cursor: pointer;
+            letter-spacing: 1px;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 50px rgba(255, 215, 0, 0.5);
+        }
+
+        .download-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .download-btn small {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: normal;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
         h2 {
             font-size: 1.8rem;
             color: #ffd700;
@@ -272,6 +311,12 @@
             th, td {
                 padding: 8px 10px;
             }
+
+            .download-btn {
+                font-size: 1.1rem;
+                padding: 14px 30px;
+                width: 90%;
+            }
         }
 
         /* Scrollbar */
@@ -306,6 +351,14 @@
             </p>
         </div>
 
+        <!-- ===== КНОПКА СКАЧАТЬ ===== -->
+        <div class="download-section">
+            <a href="https://github.com/Ratio0-sys/Downloader3000/releases/latest" target="_blank" class="download-btn">
+                ⬇️ Скачать последнюю версию
+                <small>Перейти к релизам на GitHub</small>
+            </a>
+        </div>
+
         <!-- Что входит -->
         <h2>📦 Что входит в сборку</h2>
         <div class="grid-2">
@@ -338,7 +391,7 @@
             <h3><span class="step-number">1</span> Установка yt-dlp</h3>
             <ol style="padding-left: 25px; margin: 10px 0;">
                 <li>Откройте папку с распакованными файлами</li>
-                <li>В адресной строке проводника (сверху) <strong>сотрите всё</strong> и напишите <code>cmd</code>, нажмите Enter</li>
+                <li>В адресной строке проводника <strong>сотрите всё</strong> и напишите <code>cmd</code>, нажмите Enter</li>
                 <li>В открывшейся командной строке введите:</li>
             </ol>
             <pre>winget install --id=yt-dlp.yt-dlp -e</pre>
@@ -498,6 +551,7 @@
             <a href="https://www.twitch.tv/randinlonescu" target="_blank">🟣 Twitch</a>
             <a href="https://www.youtube.com/@RandinLonescu" target="_blank">🎥 YouTube</a>
             <a href="https://t.me/RandinLonescu" target="_blank">💬 Telegram</a>
+            <a href="https://github.com/Ratio0-sys/Downloader3000/releases" target="_blank" style="border-color: #ffd700; background: rgba(255,215,0,0.1);">📦 Релизы</a>
         </div>
 
         <!-- Лицензия -->
