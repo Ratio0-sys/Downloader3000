@@ -1,0 +1,57 @@
+# --- окружение Python ---
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- сборки Flet ---
+build/
+dist/
+
+# --- готовые сборки ---
+# Сами файлы в репозиторий не идут: GitHub не принимает больше 100 МБ,
+# а APK весит 156. Бинарники публикуются на странице Releases.
+# Описание папки при этом версионируется.
+Release/*
+!Release/README.md
+!Release/SHA256SUMS.txt
+*.apk
+*.aab
+*.ipa
+*.msix
+
+# --- бинарные зависимости, качаются пользователем ---
+ffmpeg
+ffmpeg.exe
+ffprobe
+ffprobe.exe
+core.exe
+yt-dlp.exe
+
+# --- пользовательские данные ---
+# Правило нарочно с ведущим слешем и путём: просто `settings.json`
+# задевало ещё и .vscode/settings.json, который в репозиторий нужен.
+/src/settings.json
+/settings.json
+settings.ini
+sourse/Saveged/
+sourse/Sounds/
+*.mp4
+*.mp3
+*.m4a
+*.webm
+*.mkv
+*.part
+*.ytdl
+
+# --- системный мусор ---
+Thumbs.db
+desktop.ini
+.DS_Store
+*.swp
+.idea/

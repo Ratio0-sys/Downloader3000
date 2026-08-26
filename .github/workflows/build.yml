@@ -1,0 +1,171 @@
+# Сборка Downloader3000 под все платформы.
+#
+# Зачем нужен: macOS собирается только на macOS, Linux — только на Linux,
+# а для Windows нужен Visual Studio с компонентом C++. Держать всё это
+# на одной машине неудобно, поэтому сборку делают раннеры GitHub.
+#
+# Запуск: вручную через вкладку Actions или автоматически по тегу вида v2.1.0.
+
+name: Сборка приложения
+
+on:
+  workflow_dispatch:        # кнопка «Run workflow» в интерфейсе GitHub
+  push:
+    tags:
+      - "v*"                # тег v2.1.0 запускает сборку и черновик релиза
+
+permissions:
+  contents: write           # нужно, чтобы создать релиз и приложить файлы
+
+env:
+  PYTHON_VERSION: "3.12"
+  FLUTTER_VERSION: "3.44.8"
+  FLET_VERSION: "0.86.5"
+
+jobs:
+  build:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false      # упавшая платформа не должна отменять остальные
+      matrix:
+        include:
+          - os: windows-latest
+            target: windows
+            label: Windows
+            extra: ""
+
+          - os: ubuntu-latest
+            target: linux
+            label: Linux
+            extra: ""
+
+          - os: macos-latest
+            target: macos
+            label: macOS
+            extra: ""
+
+          - os: ubuntu-latest
+            target: apk
+            label: Android
+            # Отдельный файл на каждую архитектуру: втрое меньше,
+            # чем один универсальный, и телефон качает только своё.
+            extra: "--split-per-abi"
+
+    steps:
+      - name: Забрать исходники
+        uses: actions/checkout@v4
+
+      - name: Поставить Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Поставить Java
+        # Нужна только для Android: сборщик Gradle работает на ней.
+        if: matrix.target == 'apk'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Поставить Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+
+      - name: Доустановить системные пакеты Linux
+        # Flutter требует их для сборки настольного приложения под Linux.
+        if: matrix.target == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libgtk-3-dev
+
+      - name: Поставить Flet
+        run: pip install "flet[all]==${{ env.FLET_VERSION }}"
+
+      - name: Собрать
+        run: flet build ${{ matrix.target }} src ${{ matrix.extra }} --yes
+
+      - name: Разложить с понятными именами
+        # Сборщик кладёт результат безликими именами вроде
+        # app-arm64-v8a-release.apk — приводим к виду
+        # Downloader3000-<версия>-<платформа>-<архитектура>.<расширение>
+        run: python tools/pack_release.py
+
+      - name: Приложить результат к запуску
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.label }}
+          path: |
+            Release/*.apk
+            Release/*.zip
+            Release/*.tar.gz
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    name: Черновик релиза
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Забрать исходники
+        uses: actions/checkout@v4
+
+      - name: Скачать всё собранное
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true      # все платформы в одну папку
+
+      - name: Пересчитать контрольные суммы
+        # Считаем заново уже для итогового набора: так сумма точно
+        # соответствует тому файлу, который лежит в релизе.
+        run: |
+          cd dist
+          sha256sum * > SHA256SUMS.txt
+          echo "--- содержимое релиза ---"
+          ls -lh
+
+      - name: Создать черновик релиза
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          name: Downloader3000 ${{ github.ref_name }}
+          files: dist/*
+          body: |
+            ## Downloader3000 ${{ github.ref_name }}
+
+            Скачайте файл для своей системы и запустите.
+            Устанавливать ничего не нужно — ffmpeg уже внутри.
+
+            | Система | Файл | Требования |
+            | --- | --- | --- |
+            | Windows | `*-windows-x64.zip` | Windows 10 или новее |
+            | Linux | `*-linux-x64.tar.gz` | Ubuntu 20.04+, Debian 11+ |
+            | macOS | `*-macos-universal.zip` | macOS 11 или новее |
+            | Android | `*-android-arm64-v8a.apk` | большинство телефонов |
+            | Android (старые) | `*-android-armeabi-v7a.apk` | Android 6.0+ |
+
+            Не знаете, какой APK нужен — берите `arm64-v8a`,
+            он подходит почти всем телефонам последних лет.
+
+            ### Проверить целостность
+
+            ```bash
+            sha256sum -c SHA256SUMS.txt
+            ```
+
+            ### Известные ограничения
+
+            На Android недоступен ffmpeg, поэтому склейка потоков
+            и конвертация в MP3 там не работают.
+
+            Windows 7 и 8.1 не поддерживаются: современный yt-dlp требует
+            Python 3.10+, который на них не устанавливается.
+
+            Полный список изменений — в [CHANGELOG.md](CHANGELOG.md).

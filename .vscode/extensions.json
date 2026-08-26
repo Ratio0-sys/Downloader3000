@@ -1,0 +1,7 @@
+{
+    // Что стоит поставить, чтобы работать с проектом было удобно.
+    "recommendations": [
+        "ms-python.python",
+        "ms-python.debugpy"
+    ]
+}
