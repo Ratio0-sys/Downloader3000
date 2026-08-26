@@ -82,7 +82,7 @@ def main():
 
     # .png — из него flet build делает иконки под все платформы,
     # включая адаптивную иконку Android. 1024x1024 — требование сборщика.
-    assets = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets")
+    assets = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src", "assets")
     os.makedirs(assets, exist_ok=True)
     png = os.path.join(assets, "icon.png")
     icon.save(png, format="PNG")

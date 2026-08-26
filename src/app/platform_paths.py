@@ -32,13 +32,40 @@ IS_LINUX = sys.platform.startswith("linux") and not IS_ANDROID
 
 def app_dir() -> Path:
     """
-    Папка, рядом с которой живёт программа.
+    Папка, РЯДОМ С КОТОРОЙ живёт программа.
+
+    Сюда пишутся настройки и сюда же по умолчанию складываются скачанные
+    файлы, поэтому путь обязан пережить перезапуск.
 
     Две ситуации:
-      - собранное приложение: sys.frozen выставлен, берём папку исполняемого файла;
+      - собранное приложение: sys.frozen выставлен, берём папку exe;
       - запуск из исходников: поднимаемся на уровень выше от этого файла,
         то есть в src/.
     """
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parent.parent
+
+
+def resource_dir() -> Path:
+    """
+    Папка, ОТКУДА читаются встроенные ресурсы: иконка и файлы локализации.
+
+    Это НЕ то же самое, что app_dir(), и путать их нельзя.
+
+    PyInstaller в режиме одного файла распаковывает всё содержимое
+    во временную папку и кладёт её путь в `sys._MEIPASS`. После выхода
+    из программы эта папка удаляется. То есть читать ресурсы оттуда можно,
+    а писать настройки — категорически нельзя: они исчезнут.
+
+    Порядок проверки:
+      1. `sys._MEIPASS` — сборка PyInstaller;
+      2. папка рядом с exe — сборка `flet build`, там ресурсы лежат рядом;
+      3. папка исходников — обычный запуск при разработке.
+    """
+    meipass = getattr(sys, "_MEIPASS", None)
+    if meipass:
+        return Path(meipass)
     if getattr(sys, "frozen", False):
         return Path(sys.executable).resolve().parent
     return Path(__file__).resolve().parent.parent
