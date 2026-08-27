@@ -60,7 +60,7 @@ from ..settings import Settings
 from . import components as c
 
 # Версия показывается в бейдже шапки.
-APP_VERSION = "2.1"
+APP_VERSION = "2.1.1"
 
 # Ссылки автора для футера.
 LINKS = [
@@ -152,10 +152,13 @@ class DownloaderApp:
         # чтобы при смене оформления не забыть половину.
         self._apply_window_theme()
 
-        page.window.width = 980
-        page.window.height = 700
-        page.window.min_width = 440
-        page.window.min_height = 520
+        # Размеры окна имеют смысл только на десктопе: на телефоне
+        # окно во весь экран, и попытка его задать ничего не даёт.
+        if not pp.IS_ANDROID:
+            page.window.width = 980
+            page.window.height = 700
+            page.window.min_width = 440
+            page.window.min_height = 520
 
     # =================================================================== ВИД
     def _build(self) -> None:
@@ -307,6 +310,11 @@ class DownloaderApp:
             ],
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
+            # На телефоне подпись автора не помещается рядом со ссылками
+            # и обрезается многоточием. Разрешаем перенос на вторую строку.
+            # Распорки здесь нет намеренно: wrap и expand несовместимы.
+            wrap=True,
+            run_spacing=t.px(8),
         )
 
         # ------------------------------------------------- сборка страницы
@@ -372,7 +380,10 @@ class DownloaderApp:
         )
 
         page.controls.clear()
-        page.add(root)
+        # SafeArea отодвигает содержимое от строки состояния, выреза камеры
+        # и жестовой полосы внизу. Без неё на телефоне бейдж и кнопки
+        # налезают на часы и индикатор батареи.
+        page.add(ft.SafeArea(content=root, expand=True))
 
     # =========================================================== ПЛЕЙЛИСТЫ
     def _url_hint_row(self) -> ft.Control:
@@ -405,7 +416,9 @@ class DownloaderApp:
                 vertical_alignment=ft.CrossAxisAlignment.CENTER,
             )
 
-        return c.hint(tr("hint.url"))
+        # На телефоне нет клавиши Enter в привычном смысле, поэтому
+        # подсказка там другая — про кнопку.
+        return c.hint(tr("hint.url_mobile") if pp.IS_ANDROID else tr("hint.url"))
 
     def _scan_playlist(self) -> None:
         """Читает состав плейлиста в фоне: обращение к сети блокирует поток."""

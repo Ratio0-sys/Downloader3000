@@ -93,13 +93,23 @@ def android_storage_dir() -> Path | None:
     return None
 
 
-def _first_writable(*candidates: Path) -> Path:
+def _first_writable(*candidates: Path, probe_suffix: str = ".txt") -> Path:
     """
     Возвращает первую папку из списка, куда реально получается писать.
 
     Проверяем не правами доступа, а делом: создаём папку, кладём пробный файл
     и сразу удаляем. Права в Windows и на Android врут слишком часто,
     чтобы им доверять.
+
+    Про `probe_suffix` — это не мелочь, а следствие реальной ошибки.
+    Раньше пробник назывался `.d3000_write_test`: скрытый файл без расширения.
+    На Android общее хранилище идёт через MediaProvider, и он такие файлы
+    просто не пускает, хотя обычные `.mp4` и `.mp3` принимает спокойно.
+    В итоге пробник браковал папку `Download/Downloader3000`, в которую
+    приложение отлично пишет, и скачанное уезжало в приватную папку,
+    где пользователь его не найдёт.
+
+    Поэтому пробуем тем же типом файла, какой будем писать на самом деле.
 
     Функция обязана вернуть путь и НИКОГДА не бросать исключение. Её зовут
     при старте, до появления интерфейса, поэтому любая ошибка здесь означает
@@ -110,7 +120,7 @@ def _first_writable(*candidates: Path) -> Path:
     for path in candidates:
         try:
             path.mkdir(parents=True, exist_ok=True)
-            probe = path / ".d3000_write_test"
+            probe = path / f"d3000_probe{probe_suffix}"
             probe.touch()
             probe.unlink()
             return path
@@ -154,6 +164,7 @@ def default_video_dir() -> Path:
             Path("/storage/emulated/0/Download/Downloader3000"),
             Path("/sdcard/Download/Downloader3000"),
             *( [base / "Видео"] if base else [] ),
+            probe_suffix=".mp4",
         )
     # На десктопе сначала пробуем папку рядом с программой — так она портабельная.
     return _first_writable(
@@ -171,6 +182,7 @@ def default_audio_dir() -> Path:
             Path("/storage/emulated/0/Music/Downloader3000"),
             Path("/storage/emulated/0/Download/Downloader3000"),
             *( [base / "Музыка"] if base else [] ),
+            probe_suffix=".m4a",
         )
     return _first_writable(
         app_dir() / "Sounds",
@@ -193,7 +205,7 @@ def config_path() -> Path:
         base = android_storage_dir()
         candidates = [base] if base else []
         candidates.append(Path(tempfile.gettempdir()) / "Downloader3000")
-        return _first_writable(*candidates) / "settings.json"
+        return _first_writable(*candidates, probe_suffix=".json") / "settings.json"
     return app_dir() / "settings.json"
 
 

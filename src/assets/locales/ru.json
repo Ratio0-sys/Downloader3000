@@ -94,5 +94,6 @@
   "log.files_at": "Файлы лежат в {folder}",
   "theme.original": "Оригинал",
   "theme.dark": "Тёмная",
-  "theme.light": "Светлая"
+  "theme.light": "Светлая",
+  "hint.url_mobile": "Вставьте ссылку и нажмите СКАЧАТЬ"
 }
