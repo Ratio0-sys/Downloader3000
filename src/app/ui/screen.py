@@ -46,6 +46,7 @@ from __future__ import annotations
 import os
 import subprocess
 import threading
+from functools import partial
 from pathlib import Path
 
 import flet as ft
@@ -294,7 +295,9 @@ class DownloaderApp:
                     [
                         # Замыкание через lambda-обёртку: без неё все три кнопки
                         # захватили бы последнее значение url из цикла.
-                        c.GhostButton(cap, (lambda u: lambda: self._open_url(u))(url),
+                        # partial связывает адрес сразу. Без него все три кнопки
+                        # захватили бы последнее значение url из цикла.
+                        c.GhostButton(cap, partial(self._open_url, url),
                                       height=t.px(34)).control
                         for cap, url in LINKS
                     ],
@@ -487,7 +490,7 @@ class DownloaderApp:
                 *[
                     c.GhostButton(
                         title,
-                        (lambda code: lambda: self._set_language(code))(code),
+                        partial(self._set_language, code),
                         tint=t.GOLD if code == i18n.current_language() else t.MUTED,
                         width=t.px(96), height=t.px(34),
                     ).control
@@ -508,11 +511,11 @@ class DownloaderApp:
                 *[
                     c.GhostButton(
                         tr(f"theme.{key}"),
-                        (lambda key: lambda: self._set_theme(key))(key),
+                        partial(self._set_theme, key),
                         tint=t.GOLD if key == t.current_theme() else t.MUTED,
                         width=t.px(104), height=t.px(34),
                     ).control
-                    for key, palette in t.THEMES.items()
+                    for key in t.THEMES
                 ],
             ],
             spacing=t.px(8),

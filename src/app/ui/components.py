@@ -418,7 +418,22 @@ class LogView:
     # это тысячи строк и заметная просадка интерфейса.
     MAX_LINES = 500
 
-    COLORS = {"info": t.CODE, "warn": t.GOLD, "error": t.DANGER, "ok": t.SUCCESS}
+    @staticmethod
+    def _color_for(kind: str) -> str:
+        """
+        Цвет строки лога по её важности.
+
+        Раньше это был словарь-атрибут класса. Так делать нельзя: атрибуты
+        класса вычисляются ОДИН РАЗ при импорте модуля, и после смены
+        оформления лог продолжал краситься цветами старой темы.
+        Тот же подвох, что и с цветом в значении аргумента по умолчанию.
+        """
+        return {
+            "info": t.CODE,
+            "warn": t.GOLD,
+            "error": t.DANGER,
+            "ok": t.SUCCESS,
+        }.get(kind, t.CODE)
 
     def __init__(self, height: int | None = None):
         # auto_scroll сам держит окно прокрутки внизу при добавлении строк.
@@ -438,7 +453,7 @@ class LogView:
             ft.Text(
                 message,
                 size=t.FS_MONO,
-                color=self.COLORS.get(kind, t.CODE),
+                color=self._color_for(kind),
                 font_family="Consolas, Menlo, monospace",
                 selectable=True,     # чтобы текст ошибки можно было скопировать
             )
