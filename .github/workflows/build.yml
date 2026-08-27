@@ -86,7 +86,41 @@ jobs:
       - name: Поставить Flet
         run: pip install "flet[all]==${{ env.FLET_VERSION }}"
 
+      - name: Скачать движок JavaScript
+        # Обязательный шаг, а не украшение. Бинарник QuickJS лежит
+        # в .gitignore, поэтому в свежей копии репозитория его нет.
+        # Без него YouTube отдаёт неполный список форматов, а часть
+        # роликов помечает недоступными — то есть релизные сборки
+        # оказались бы хуже собранных руками.
+        run: python tools/fetch_quickjs.py
+
+      - name: Поставить PyInstaller
+        # Нужен только для Windows, см. следующий шаг.
+        if: matrix.target == 'windows'
+        run: pip install pyinstaller
+
+      - name: Собрать Windows через PyInstaller
+        # `flet build windows` требует Visual Studio с компонентом C++
+        # и падал в обоих окружениях, где его пробовали. `flet pack`
+        # собирает через PyInstaller, обходится одним Python и даёт
+        # один самодостаточный .exe — именно он проверен запуском.
+        if: matrix.target == 'windows'
+        run: >
+          flet pack src/main.py
+          --name Downloader3000
+          --icon tools/app.ico
+          --product-name "Downloader3000"
+          --product-version "2.1.0"
+          --file-version "2.1.0"
+          --company-name "RandinLonescu"
+          --copyright "(c) RandinLonescu"
+          --distpath build/windows
+          --add-data "src/assets;assets"
+          "--pyinstaller-build-args=--collect-all=imageio_ffmpeg"
+          -y
+
       - name: Собрать
+        if: matrix.target != 'windows'
         run: flet build ${{ matrix.target }} src ${{ matrix.extra }} --yes
 
       - name: Разложить с понятными именами

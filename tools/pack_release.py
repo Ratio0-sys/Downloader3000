@@ -120,6 +120,17 @@ def collect_desktop(build: Path, version: str) -> list[Path]:
         src = build / folder
         if not src.is_dir():
             continue
+
+        # Windows собирается через PyInstaller и даёт один самодостаточный
+        # .exe. Заворачивать его в архив незачем: пользователю приятнее
+        # скачать файл и сразу запустить, чем сначала распаковывать.
+        loose = [f for f in src.iterdir() if f.suffix == ".exe"]
+        if folder == "windows" and len(loose) == 1:
+            dst = RELEASE / f"{PRODUCT}-{version}-{suffix}.exe"
+            shutil.copy2(loose[0], dst)
+            out.append(dst)
+            continue
+
         dst = RELEASE / f"{PRODUCT}-{version}-{suffix}.{kind}"
         if kind == "zip":
             with zipfile.ZipFile(dst, "w", zipfile.ZIP_DEFLATED) as zf:
