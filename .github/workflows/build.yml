@@ -22,6 +22,13 @@ env:
   FLUTTER_VERSION: "3.44.8"
   FLET_VERSION: "0.86.5"
 
+  # Без этого Python на Windows-раннере пишет в консоль в кодировке системы,
+  # и первый же print с кириллицей роняет скрипт с UnicodeEncodeError.
+  # Linux и macOS работают в UTF-8 по умолчанию, поэтому ошибка была
+  # только на Windows и выглядела как «сборка упала».
+  PYTHONIOENCODING: "utf-8"
+  PYTHONUTF8: "1"
+
 jobs:
   build:
     name: ${{ matrix.label }}
@@ -134,6 +141,7 @@ jobs:
         with:
           name: ${{ matrix.label }}
           path: |
+            Release/*.exe
             Release/*.apk
             Release/*.zip
             Release/*.tar.gz
@@ -175,11 +183,13 @@ jobs:
             ## Downloader3000 ${{ github.ref_name }}
 
             Скачайте файл для своей системы и запустите.
-            Устанавливать ничего не нужно — ffmpeg уже внутри.
+            Устанавливать ничего не нужно: ffmpeg и движок JavaScript
+            уже внутри. Под Windows это один самодостаточный `.exe` —
+            распаковывать нечего.
 
             | Система | Файл | Требования |
             | --- | --- | --- |
-            | Windows | `*-windows-x64.zip` | Windows 10 или новее |
+            | Windows | `*-windows-x64.exe` | Windows 10 или новее |
             | Linux | `*-linux-x64.tar.gz` | Ubuntu 20.04+, Debian 11+ |
             | macOS | `*-macos-universal.zip` | macOS 11 или новее |
             | Android | `*-android-arm64-v8a.apk` | большинство телефонов |

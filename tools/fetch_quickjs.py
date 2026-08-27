@@ -34,6 +34,16 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+# Скрипт печатает по-русски, а на Windows консоль по умолчанию не в UTF-8.
+# Без этой строчки первый же print роняет процесс с UnicodeEncodeError,
+# и в CI это выглядит как «сборка упала» — хотя не собралось ничего,
+# потому что скрипт умер на приветствии. Именно так и случилось однажды.
+for stream in (sys.stdout, sys.stderr):
+    try:
+        stream.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 ROOT = Path(__file__).resolve().parent.parent
 TARGET_DIR = ROOT / "src" / "assets" / "runtimes"
 
