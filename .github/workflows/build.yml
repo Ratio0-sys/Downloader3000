@@ -117,8 +117,8 @@ jobs:
           --name Downloader3000
           --icon tools/app.ico
           --product-name "Downloader3000"
-          --product-version "2.1.0"
-          --file-version "2.1.0"
+          --product-version "2.2.0"
+          --file-version "2.2.0"
           --company-name "RandinLonescu"
           --copyright "(c) RandinLonescu"
           --distpath build/windows
@@ -126,9 +126,27 @@ jobs:
           "--pyinstaller-build-args=--collect-all=imageio_ffmpeg"
           -y
 
+      - name: Скачать бинарники под Android
+        # ffmpeg и QuickJS для самого телефона, а не для машины сборки.
+        # Статические сборки для Linux работают и на Android: они не зависят
+        # от системной libc. Проверено на устройстве под Android 15.
+        if: matrix.target == 'apk'
+        run: python tools/fetch_android_natives.py
+
       - name: Собрать
         if: matrix.target != 'windows'
         run: flet build ${{ matrix.target }} src ${{ matrix.extra }} --yes
+
+      - name: Вложить бинарники и пересобрать Android
+        # Двухпроходная сборка. У flet нет своей опции для нативных
+        # библиотек, а положить их можно только в сгенерированный проект.
+        # Первый проход этот проект создаёт, здесь мы вкладываем файлы,
+        # второй проход забирает их в APK. Проект между проходами
+        # не пересоздаётся: flet делает это только при смене шаблона.
+        if: matrix.target == 'apk'
+        run: |
+          python tools/inject_android_natives.py
+          flet build ${{ matrix.target }} src ${{ matrix.extra }} --yes
 
       - name: Разложить с понятными именами
         # Сборщик кладёт результат безликими именами вроде

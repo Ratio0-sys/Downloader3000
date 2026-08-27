@@ -350,7 +350,7 @@
 
     <!-- ==================== ШАПКА ==================== -->
     <div class="hero">
-        <span class="badge">🧝 Эльфийская сборка v2.1.1</span>
+        <span class="badge">🧝 Эльфийская сборка v2.2.0</span>
         <h1>Downloader3000</h1>
         <p class="tagline">
             Вставил ссылку, выбрал качество, нажал кнопку — файл лежит в папке.
@@ -373,7 +373,7 @@
                 <span>🍎</span><span><span class="os">macOS</span><span class="req">11 и новее</span></span>
             </a>
             <a class="platform" href="https://github.com/Ratio0-sys/Downloader3000/releases/latest" target="_blank" rel="noopener noreferrer">
-                <span>🤖</span><span><span class="os">Android</span><span class="req">6.0+ · с оговорками</span></span>
+                <span>🤖</span><span><span class="os">Android</span><span class="req">6.0 и новее</span></span>
             </a>
         </div>
     </div>
@@ -470,13 +470,10 @@
         </div>
 
         <div class="note">
-            <b>На Android возможности заметно урезаны.</b> Там недоступны сразу
-            две вещи: ffmpeg и движок JavaScript. Без первого не склеить видео
-            со звуком и не сделать MP3. Без второго YouTube отдаёт неполный
-            список форматов. Вшить движок в APK не выходит — он собирается
-            под платформу сборщика, а Android нужен свой. Программа сама
-            распознаёт ситуацию и показывает жёлтый статус с перечнем того,
-            чего не хватает. С сайтами попроще скачивание работает.
+            <b>На Android нужен APK под свою архитектуру.</b> Бинарники ffmpeg
+            и QuickJS вшиты в сборки для arm64 и arm32 — это все настоящие
+            телефоны. Под x86_64 их нет, поэтому в эмуляторе склейка видео
+            и конвертация в MP3 работать не будут.
         </div>
 
         <h3>Почему ffmpeg вообще нужен</h3>
@@ -517,8 +514,8 @@
                     <tr><td>Язык</td><td>Python 3.12+</td></tr>
                     <tr><td>Интерфейс</td><td>Flet — рендер на Flutter, один код на все платформы</td></tr>
                     <tr><td>Движок загрузки</td><td>yt-dlp, подключён библиотекой, а не внешним файлом</td></tr>
-                    <tr><td>Обработка медиа</td><td>ffmpeg, встроен в настольные сборки</td></tr>
-                    <tr><td>Исполнение JS</td><td>QuickJS, встроен в настольные сборки</td></tr>
+                    <tr><td>Обработка медиа</td><td>ffmpeg, встроен во все сборки</td></tr>
+                    <tr><td>Исполнение JS</td><td>QuickJS, встроен во все сборки</td></tr>
                 </tbody>
             </table>
         </div>

@@ -27,6 +27,11 @@ Release/*
 *.ipa
 *.msix
 
+# --- бинарники под Android ---
+# ffmpeg и QuickJS для телефона. Качаются tools/fetch_android_natives.py,
+# весят полсотни мегабайт — в репозиторий им не место.
+build_natives/
+
 # --- движок JavaScript ---
 # Качается скриптом tools/fetch_quickjs.py при сборке.
 # В репозиторий не кладём: это чужой бинарник на два мегабайта.

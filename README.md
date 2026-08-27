@@ -5,7 +5,7 @@
 **Вставил ссылку — получил файл.**
 Видео и музыка с YouTube и сотен других сайтов.
 
-[![Версия](https://img.shields.io/badge/версия-2.1.1-ffd700?style=flat-square)](https://github.com/Ratio0-sys/Downloader3000/releases/latest)
+[![Версия](https://img.shields.io/badge/версия-2.2.0-ffd700?style=flat-square)](https://github.com/Ratio0-sys/Downloader3000/releases/latest)
 [![Платформы](https://img.shields.io/badge/Windows%20·%20Linux%20·%20macOS%20·%20Android-302b63?style=flat-square)](https://ratio0-sys.github.io/Downloader3000/)
 [![Python](https://img.shields.io/badge/Python-3.12+-0f0c29?style=flat-square)](https://www.python.org/)
 [![Лицензия](https://img.shields.io/badge/лицензия-MIT-24243e?style=flat-square)](LICENSE)
@@ -32,7 +32,7 @@
 | Windows | `*-windows-x64.exe` | 10 и новее, один файл |
 | Linux | `*-linux-x64.tar.gz` | Ubuntu 20.04+, Debian 11+ |
 | macOS | `*-macos-universal.zip` | 11 и новее |
-| Android | `*-android-arm64-v8a.apk` | 6.0+, [с оговорками](#ограничения) |
+| Android | `*-android-arm64-v8a.apk` | 6.0 и новее |
 
 ## Что умеет
 
@@ -57,15 +57,14 @@
 а он на эти системы не ставится. Официальные сборки yt-dlp тоже давно
 требуют Windows 10.
 
-**На Android урезаны возможности.** Там недоступны ffmpeg и движок JavaScript:
-без первого не склеить видео со звуком и не сделать MP3, без второго YouTube
-отдаёт неполный список форматов. Вшить их в APK мешает запрет Android
-на запуск файлов из папки приложения. Программа честно показывает жёлтый
-статус с перечнем того, чего не хватает.
-
 **ffmpeg обязателен для видео.** YouTube отдаёт картинку и звук раздельными
 потоками — проверено на живом ролике: 32 потока без звука, 11 без картинки,
-ни одного совмещённого. В настольные сборки ffmpeg и QuickJS уже вшиты.
+ни одного совмещённого. Во все сборки, включая Android, ffmpeg и QuickJS
+уже вшиты — ставить ничего не нужно.
+
+**На Android есть APK только под arm64 и arm32.** Под x86_64 бинарники
+для телефона не кладутся, поэтому в эмуляторе склейка и MP3 не работают.
+На настоящих телефонах это не мешает: там почти всегда arm64.
 
 ## Из исходников
 
