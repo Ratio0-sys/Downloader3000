@@ -18,6 +18,7 @@ from __future__ import annotations
 import os
 import shutil
 import sys
+import tempfile
 from pathlib import Path
 
 # ------------------------------------------------------------- ОПОЗНАНИЕ ОС
@@ -71,6 +72,27 @@ def resource_dir() -> Path:
     return Path(__file__).resolve().parent.parent
 
 
+def android_storage_dir() -> Path | None:
+    """
+    Приватная папка приложения на Android.
+
+    Android не даёт писать куда попало: `Path.home()` там указывает на `/data`,
+    куда доступа нет вовсе. Обычная домашняя папка как запасной вариант
+    не работает — именно на этом приложение падало при старте с
+    `PermissionError: '/data/Downloader3000'`.
+
+    Правильный источник — переменные окружения, которые Flet выставляет
+    для приложения. Первая из них указывает на постоянное хранилище,
+    остальные на кэш и временную папку: они переживают меньше, но писать
+    в них тоже можно.
+    """
+    for name in ("FLET_APP_STORAGE_DATA", "FLET_APP_STORAGE_CACHE", "FLET_APP_STORAGE_TEMP"):
+        value = os.environ.get(name)
+        if value:
+            return Path(value)
+    return None
+
+
 def _first_writable(*candidates: Path) -> Path:
     """
     Возвращает первую папку из списка, куда реально получается писать.
@@ -78,6 +100,12 @@ def _first_writable(*candidates: Path) -> Path:
     Проверяем не правами доступа, а делом: создаём папку, кладём пробный файл
     и сразу удаляем. Права в Windows и на Android врут слишком часто,
     чтобы им доверять.
+
+    Функция обязана вернуть путь и НИКОГДА не бросать исключение. Её зовут
+    при старте, до появления интерфейса, поэтому любая ошибка здесь означает
+    падение приложения без единого понятного слова на экране. Так и случилось
+    на Android: запасной вариант вёл в `/data`, писать туда нельзя,
+    и `mkdir` вылетал наружу.
     """
     for path in candidates:
         try:
@@ -89,10 +117,23 @@ def _first_writable(*candidates: Path) -> Path:
         except Exception:
             continue
 
-    # Совсем некуда писать — уходим в домашнюю папку, лишь бы не падать.
-    fallback = Path.home() / "Downloader3000"
-    fallback.mkdir(parents=True, exist_ok=True)
-    return fallback
+    # Ни один из предложенных вариантов не подошёл. Пробуем то,
+    # что доступно всегда, в порядке убывания долговечности.
+    for fallback in (
+        android_storage_dir(),
+        Path(tempfile.gettempdir()) / "Downloader3000",
+    ):
+        if fallback is None:
+            continue
+        try:
+            fallback.mkdir(parents=True, exist_ok=True)
+            return fallback
+        except Exception:
+            continue
+
+    # Совсем безнадёжный случай: отдаём временную папку как есть.
+    # Она точно существует, иначе не работал бы сам Python.
+    return Path(tempfile.gettempdir())
 
 
 def default_video_dir() -> Path:
@@ -105,10 +146,14 @@ def default_video_dir() -> Path:
     Теперь путь вычисляется, а варианты перебираются по убыванию удобства.
     """
     if IS_ANDROID:
+        # Сначала общая папка загрузок — оттуда файл видно любому
+        # файловому менеджеру. Если разрешения на неё нет, уходим
+        # в приватную папку приложения: она доступна всегда.
+        base = android_storage_dir()
         return _first_writable(
             Path("/storage/emulated/0/Download/Downloader3000"),
             Path("/sdcard/Download/Downloader3000"),
-            app_dir() / "Saveged",
+            *( [base / "Видео"] if base else [] ),
         )
     # На десктопе сначала пробуем папку рядом с программой — так она портабельная.
     return _first_writable(
@@ -121,10 +166,11 @@ def default_video_dir() -> Path:
 def default_audio_dir() -> Path:
     """Куда сохранять музыку. Логика та же, но целимся в музыкальные папки."""
     if IS_ANDROID:
+        base = android_storage_dir()
         return _first_writable(
             Path("/storage/emulated/0/Music/Downloader3000"),
             Path("/storage/emulated/0/Download/Downloader3000"),
-            app_dir() / "Sounds",
+            *( [base / "Музыка"] if base else [] ),
         )
     return _first_writable(
         app_dir() / "Sounds",
@@ -138,10 +184,16 @@ def config_path() -> Path:
     Файл настроек.
 
     На десктопе кладём рядом с программой — тогда её можно носить на флешке
-    вместе с настройками. На Android рядом писать нельзя, уходим в домашнюю папку.
+    вместе с настройками. На Android рядом писать нельзя, поэтому берём
+    приватную папку приложения.
     """
     if IS_ANDROID:
-        return _first_writable(Path.home() / ".downloader3000") / "settings.json"
+        # Path.home() на Android указывает на /data — туда писать нельзя.
+        # Берём приватную папку приложения, которую выдаёт Flet.
+        base = android_storage_dir()
+        candidates = [base] if base else []
+        candidates.append(Path(tempfile.gettempdir()) / "Downloader3000")
+        return _first_writable(*candidates) / "settings.json"
     return app_dir() / "settings.json"
 
 
