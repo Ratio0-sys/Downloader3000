@@ -1,0 +1,29 @@
+{
+    // Интерпретатор проекта — из локального окружения, а не системный.
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
+    "python.terminal.activateEnvironment": true,
+
+    // Русские комментарии и строки должны читаться корректно.
+    "files.encoding": "utf8",
+    "files.eol": "\n",
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+
+    // Не показываем мусор в дереве файлов.
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/*.pyc": true,
+        "**/.pytest_cache": true
+    },
+    "search.exclude": {
+        "**/.venv": true,
+        "**/build": true,
+        "**/Release": true
+    },
+
+    "[python]": {
+        "editor.rulers": [100],
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true
+    }
+}

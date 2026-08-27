@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Готовые сборки
+    url: https://github.com/Ratio0-sys/Downloader3000/releases
+    about: Скачать последнюю версию под свою систему
+  - name: Сайт проекта
+    url: https://ratio0-sys.github.io/Downloader3000/
+    about: Описание, установка и решение частых проблем
+  - name: Telegram
+    url: https://t.me/RandinLonescu
+    about: Написать автору напрямую

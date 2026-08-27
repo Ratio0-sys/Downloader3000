@@ -1,0 +1,26 @@
+name: Предложить улучшение
+description: Идея, которой не хватает
+labels: ["улучшение"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Какую задачу это решает
+      description: >
+        Опишите не саму фичу, а неудобство. Так проще придумать
+        решение, которое действительно поможет.
+      placeholder: Приходится каждый раз вручную менять папку, потому что ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: Как это могло бы работать
+      placeholder: Хорошо бы запоминать папку отдельно для каждого канала.
+
+  - type: textarea
+    id: alt
+    attributes:
+      label: Что пробовали вместо этого
+      description: Необязательно, но помогает понять контекст.

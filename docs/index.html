@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎬 Downloader3000 — эльфийская сборка</title>
+    <meta name="description" content="Загрузчик видео и музыки на базе yt-dlp. Windows, Linux, macOS и Android. Вставил ссылку — получил файл.">
+    <meta name="theme-color" content="#0f0c29">
+
+    <!-- Иконка вкладки: SVG прямо в атрибуте, чтобы не тащить отдельный файл -->
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23241f4d'/%3E%3Cpath d='M50 18v40M32 48l18 22 18-22M28 82h44' stroke='%23ffd700' stroke-width='11' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E">
+
+    <!-- Карточка при отправке ссылки в мессенджер -->
+    <meta property="og:title" content="Downloader3000 — эльфийская сборка">
+    <meta property="og:description" content="Загрузчик видео и музыки на базе yt-dlp. Windows, Linux, macOS и Android.">
+    <meta property="og:type" content="website">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            background-attachment: fixed;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(135deg, #f7971e, #ffd200);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: #ffd200; /* запасной цвет, если clip не поддержан */
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 40px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 20px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(255, 215, 0, 0.15);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            color: #ffd700;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+        }
+
+        /* ===== СКАЧИВАНИЕ ===== */
+        .download-section {
+            text-align: center;
+            margin: 30px 0 20px 0;
+        }
+
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #f7971e, #ffd200);
+            color: #1a1a2e;
+            font-size: 1.4rem;
+            font-weight: bold;
+            padding: 18px 50px;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 40px rgba(255, 215, 0, 0.3);
+            border: none;
+            cursor: pointer;
+            letter-spacing: 1px;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 50px rgba(255, 215, 0, 0.5);
+        }
+
+        .download-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .download-btn small {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: normal;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        .platforms {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 22px;
+        }
+
+        .platform {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #ffd700;
+            text-decoration: none;
+            padding: 10px 20px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 12px;
+            background: rgba(255, 215, 0, 0.05);
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .platform:hover {
+            background: rgba(255, 215, 0, 0.15);
+            transform: translateY(-3px);
+        }
+
+        .platform .os {
+            font-weight: 600;
+        }
+
+        .platform .req {
+            color: #888;
+            font-size: 0.8rem;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            color: #ffd700;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h3 {
+            font-size: 1.3rem;
+            color: #f0c27f;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+
+        .step {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 4px solid #ffd700;
+            padding: 20px 25px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #ffd700;
+            color: #1a1a2e;
+            font-weight: bold;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-right: 10px;
+        }
+
+        code {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #ffd700;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px 20px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            color: #a8d8ea;
+        }
+
+        .warning {
+            background: rgba(255, 200, 0, 0.1);
+            border: 1px solid rgba(255, 200, 0, 0.3);
+            border-left: 4px solid #ffd700;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .important {
+            background: rgba(255, 50, 50, 0.1);
+            border: 1px solid rgba(255, 50, 50, 0.3);
+            border-left: 4px solid #ff4444;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        /* Таблицы на узком экране должны скроллиться сами, а не растягивать страницу */
+        .table-wrap {
+            overflow-x: auto;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            overflow: hidden;
+            min-width: 480px;
+        }
+
+        thead {
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        th {
+            padding: 12px 15px;
+            text-align: left;
+            color: #ffd700;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(255, 215, 0, 0.2);
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #ffd700;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.1);
+        }
+
+        .card .icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .card .name {
+            font-weight: bold;
+            color: #ffd700;
+            font-size: 1.1rem;
+        }
+
+        .card .desc {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-top: 5px;
+        }
+
+        .features {
+            list-style: none;
+            padding: 0;
+        }
+
+        .features li {
+            padding: 10px 0 10px 32px;
+            position: relative;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .features li::before {
+            content: "✅";
+            position: absolute;
+            left: 0;
+        }
+
+        .links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .links a {
+            color: #ffd700;
+            text-decoration: none;
+            padding: 8px 20px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            background: rgba(255, 215, 0, 0.05);
+        }
+
+        .links a:hover {
+            background: rgba(255, 215, 0, 0.15);
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.15);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .footer .elf {
+            color: #ffd700;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .grid-2 {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            th, td {
+                padding: 8px 10px;
+            }
+
+            .download-btn {
+                font-size: 1.1rem;
+                padding: 14px 30px;
+                width: 90%;
+            }
+        }
+
+        @media (max-width: 460px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Уважаем настройку «уменьшить движение» */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                transition: none !important;
+                animation: none !important;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #ffd700;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #f0c27f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="text-align: center;">
+            <span class="badge">🧝‍♂️ Эльфийская сборка v2.1</span>
+            <h1>🎬 Downloader3000</h1>
+            <p class="subtitle">
+                Создано эльфами на коленке при помощи древних технологий.<br>
+                Вставил ссылку — получил файл. Работает на yt-dlp ✨
+            </p>
+        </div>
+
+        <!-- ===== СКРИНШОТ ===== -->
+        <div style="margin: 10px 0 30px 0;">
+            <img src="screenshots/original.png" alt="Главное окно Downloader3000"
+                 style="width: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
+                        box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+        </div>
+
+        <!-- ===== СКАЧАТЬ ===== -->
+        <div class="download-section">
+            <a href="https://github.com/Ratio0-sys/Downloader3000/releases/latest" target="_blank" rel="noopener noreferrer" class="download-btn">
+                ⬇️ Скачать последнюю версию
+                <small>Перейти к релизам на GitHub</small>
+            </a>
+
+            <div class="platforms">
+                <a class="platform" href="https://github.com/Ratio0-sys/Downloader3000/releases/latest" target="_blank" rel="noopener noreferrer">
+                    <span>🪟</span>
+                    <span><span class="os">Windows</span><br><span class="req">10 и новее</span></span>
+                </a>
+                <a class="platform" href="https://github.com/Ratio0-sys/Downloader3000/releases/latest" target="_blank" rel="noopener noreferrer">
+                    <span>🐧</span>
+                    <span><span class="os">Linux</span><br><span class="req">Ubuntu 20.04+</span></span>
+                </a>
+                <a class="platform" href="https://github.com/Ratio0-sys/Downloader3000/releases/latest" target="_blank" rel="noopener noreferrer">
+                    <span>🍎</span>
+                    <span><span class="os">macOS</span><br><span class="req">11 и новее</span></span>
+                </a>
+                <a class="platform" href="https://github.com/Ratio0-sys/Downloader3000/releases/latest" target="_blank" rel="noopener noreferrer">
+                    <span>🤖</span>
+                    <span><span class="os">Android</span><br><span class="req">6.0 и новее</span></span>
+                </a>
+            </div>
+        </div>
+
+        <div class="warning">
+            🎉 <strong>Больше никаких настроек.</strong> В версии 2.0 не нужно ставить yt-dlp,
+            искать ffmpeg и править пути в блокноте. Скачал, запустил, работает.
+        </div>
+
+        <!-- Режимы -->
+        <h2>📦 Что умеет</h2>
+        <div class="grid-2">
+            <div class="card">
+                <div class="icon">🎬</div>
+                <div class="name">Best</div>
+                <div class="desc">Максимальное качество</div>
+            </div>
+            <div class="card">
+                <div class="icon">📺</div>
+                <div class="name">1080p</div>
+                <div class="desc">Full HD</div>
+            </div>
+            <div class="card">
+                <div class="icon">📼</div>
+                <div class="name">720p</div>
+                <div class="desc">Полегче и быстрее</div>
+            </div>
+            <div class="card">
+                <div class="icon">🎵</div>
+                <div class="name">MP3</div>
+                <div class="desc">Только звук</div>
+            </div>
+        </div>
+
+        <h2>🆕 Что нового в 2.1</h2>
+        <ul class="features">
+            <li><strong>Плейлисты по выбору.</strong> Ссылка на плейлист разворачивается
+                в список с галочками — отмечаете нужное, остальное не качается</li>
+            <li><strong>Два языка</strong> — русский и английский, определяется по системе</li>
+            <li><strong>Три оформления</strong> — «Оригинал», «Тёмная» и «Светлая»</li>
+            <li><strong>Масштаб интерфейса</strong> от 80% до 150%</li>
+        </ul>
+
+        <div class="grid-2" style="grid-template-columns: 1fr 1fr; margin-top: 20px;">
+            <div>
+                <img src="screenshots/dark.png" alt="Тёмное оформление"
+                     style="width:100%; border-radius:12px; border:1px solid rgba(255,255,255,0.1);">
+                <p style="text-align:center; color:#aaa; font-size:0.9rem; margin-top:8px;">Тёмная</p>
+            </div>
+            <div>
+                <img src="screenshots/light.png" alt="Светлое оформление"
+                     style="width:100%; border-radius:12px; border:1px solid rgba(255,255,255,0.1);">
+                <p style="text-align:center; color:#aaa; font-size:0.9rem; margin-top:8px;">Светлая</p>
+            </div>
+        </div>
+
+        <h2>✨ Возможности</h2>
+        <ul class="features">
+            <li>Папка сохранения запоминается отдельно для видео и для музыки</li>
+            <li>Прогресс со скоростью и оставшимся временем</li>
+            <li>Кнопка отмены, которая действительно останавливает загрузку</li>
+            <li>Живой лог: при ошибке видно, что именно сломалось</li>
+            <li>Ссылка с плейлистом больше не утаскивает две сотни роликов случайно</li>
+            <li>Названия сохраняются оригинальными — с русскими буквами и спецсимволами</li>
+            <li>Работает не только с YouTube, но и с сотнями других сайтов</li>
+        </ul>
+
+        <!-- Установка -->
+        <h2>📥 Как пользоваться</h2>
+
+        <div class="step">
+            <h3><span class="step-number">1</span> Скачайте файл для своей системы</h3>
+            <p>Возьмите сборку со страницы релизов и распакуйте в любую папку.
+               Устанавливать ничего не нужно — программа портабельная.</p>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">2</span> Запустите и вставьте ссылку</h3>
+            <p>Выберите режим, вставьте ссылку и нажмите <strong>СКАЧАТЬ</strong>.
+               Можно просто нажать Enter в поле ссылки.</p>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">3</span> Заберите файл</h3>
+            <p>Кнопка <strong>Открыть</strong> покажет папку с результатом.
+               По умолчанию это <code>Saveged</code> для видео и <code>Sounds</code> для музыки
+               рядом с программой.</p>
+        </div>
+
+        <!-- Ограничения -->
+        <h2>⚠️ О чём честно предупредить</h2>
+
+        <div class="important">
+            <strong>Windows 7 и 8.1 не поддерживаются.</strong> Современный yt-dlp требует
+            Python 3.10+, который на Windows 7 просто не устанавливается. Официальные сборки
+            самого yt-dlp тоже уже требуют Windows 10. Обойти это нельзя никак —
+            дело не в программе, а в движке.
+        </div>
+
+        <div class="warning">
+            <strong>На Android возможности урезаны.</strong> Там недоступен ffmpeg, поэтому
+            склейка потоков и конвертация в MP3 не работают. Скачать можно то, что сайт
+            отдаёт готовым файлом. Программа сама определит ситуацию и напишет, что доступно.
+        </div>
+
+        <h3>Почему ffmpeg вообще важен</h3>
+        <p>YouTube больше не отдаёт видео и звук одним файлом — только раздельными потоками,
+           которые нужно склеивать. Мы проверили это на живом ролике и получили
+           <strong>32 потока без звука, 11 без картинки и ни одного совмещённого</strong>.
+           Поэтому в настольные сборки ffmpeg уже встроен: раньше его приходилось искать
+           вручную, и это была главная причина, по которой у людей ничего не работало.</p>
+
+        <!-- Проблемы -->
+        <h2>🔧 Если что-то пошло не так</h2>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Симптом</th>
+                        <th>Что делать</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>ffmpeg не найден</code></td>
+                        <td>Положите <code>ffmpeg</code> рядом с программой или установите в систему</td>
+                    </tr>
+                    <tr>
+                        <td><code>JS-движок не найден</code></td>
+                        <td>В готовых сборках движок вшит. Если запускаете из исходников —
+                            поставьте <a href="https://nodejs.org" style="color:#ffd700" target="_blank" rel="noopener noreferrer">Node.js</a>
+                            или выполните <code>python tools/fetch_quickjs.py</code></td>
+                    </tr>
+                    <tr>
+                        <td>Видео недоступно</td>
+                        <td>Приватное, удалённое или заблокированное в вашем регионе</td>
+                    </tr>
+                    <tr>
+                        <td>Нет связи с сервером</td>
+                        <td>Проверьте интернет и настройки прокси</td>
+                    </tr>
+                    <tr>
+                        <td>Качество ниже ожидаемого</td>
+                        <td>Обычно это отсутствие ffmpeg или JS-движка</td>
+                    </tr>
+                    <tr>
+                        <td>Ничего не помогает</td>
+                        <td>Посмотрите лог внизу окна — там написана настоящая причина</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Технические детали -->
+        <h2>🛠️ Технические детали</h2>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Что</th>
+                        <th>Чем сделано</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Язык</td><td>Python 3.10+</td></tr>
+                    <tr><td>Интерфейс</td><td>Flet — рендер на Flutter, один код на все платформы</td></tr>
+                    <tr><td>Движок загрузки</td><td>yt-dlp, подключён библиотекой, а не внешним файлом</td></tr>
+                    <tr><td>Обработка медиа</td><td>ffmpeg, встроен в настольные сборки</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <p>Селекторы форматов, если интересно, что именно запрашивается:</p>
+        <pre>
+  Best   bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best
+  1080p  bestvideo[height&lt;=1080][ext=mp4]+bestaudio[ext=m4a]/…
+  720p   bestvideo[height&lt;=720][ext=mp4]+bestaudio[ext=m4a]/…
+  MP3    bestaudio[ext=m4a]/bestaudio  →  ffmpeg  →  mp3 + обложка</pre>
+
+        <p style="color:#aaa; font-size:0.95rem;">
+            Исходный код открыт и прокомментирован по-русски —
+            <a href="https://github.com/Ratio0-sys/Downloader3000" style="color:#ffd700" target="_blank" rel="noopener noreferrer">посмотреть на GitHub</a>.
+        </p>
+
+        <!-- Ссылки -->
+        <div class="links">
+            <a href="https://www.twitch.tv/randinlonescu" target="_blank" rel="noopener noreferrer">🟣 Twitch</a>
+            <a href="https://www.youtube.com/@RandinLonescu" target="_blank" rel="noopener noreferrer">🎥 YouTube</a>
+            <a href="https://t.me/RandinLonescu" target="_blank" rel="noopener noreferrer">💬 Telegram</a>
+            <a href="https://github.com/Ratio0-sys/Downloader3000" target="_blank" rel="noopener noreferrer">💻 Исходники</a>
+            <a href="https://github.com/Ratio0-sys/Downloader3000/releases" target="_blank" rel="noopener noreferrer" style="border-color: #ffd700; background: rgba(255,215,0,0.1);">📦 Релизы</a>
+        </div>
+
+        <!-- Лицензия -->
+        <div class="footer">
+            <p><span class="elf">🧝‍♂️</span> by <strong>RandinLonescu</strong> <span class="elf">🧝‍♂️</span></p>
+            <p style="font-size: 0.8rem; color: #555; margin-top: 5px;">
+                Сделано для личного использования. Эльфы не несут ответственности за нарушение авторских прав.<br>
+                Да прибудет с вами качественное видео! ✨
+            </p>
+        </div>
+    </div>
+</body>
+</html>

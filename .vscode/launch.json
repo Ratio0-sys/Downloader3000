@@ -1,0 +1,82 @@
+{
+    // Конфигурации запуска Downloader3000.
+    // Открыть панель: Ctrl+Shift+D, выбрать нужную и нажать F5.
+    "version": "0.2.0",
+    "configurations": [
+        {
+            // Главный режим для разработки интерфейса.
+            // Правки в любом .py применяются сразу, окно перезагружается само —
+            // перезапускать вручную не нужно.
+            "name": "🔥 Горячая перезагрузка (правки видно сразу)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "flet",
+            "args": [
+                "run",
+                "--hot",
+                "src/main.py"
+            ],
+            "cwd": "${workspaceFolder}",
+            "python": "${workspaceFolder}/.venv/Scripts/python.exe",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "PYTHONIOENCODING": "utf-8",
+                "PYTHONUTF8": "1"
+            }
+        },
+        {
+            // Обычный запуск с точками останова.
+            // Горячая перезагрузка тут не работает, зато можно ставить брейкпоинты.
+            "name": "🐞 Отладка с точками останова",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/main.py",
+            "cwd": "${workspaceFolder}",
+            "python": "${workspaceFolder}/.venv/Scripts/python.exe",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "PYTHONIOENCODING": "utf-8",
+                "PYTHONUTF8": "1"
+            }
+        },
+        {
+            // Быстрый запуск без отладчика — просто посмотреть результат.
+            "name": "▶️ Просто запустить",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/main.py",
+            "cwd": "${workspaceFolder}",
+            "python": "${workspaceFolder}/.venv/Scripts/python.exe",
+            "console": "integratedTerminal",
+            "noDebug": true,
+            "env": {
+                "PYTHONIOENCODING": "utf-8",
+                "PYTHONUTF8": "1"
+            }
+        },
+        {
+            // Версия для браузера: удобно проверять адаптив,
+            // просто меняя размер окна браузера.
+            "name": "🌐 Открыть в браузере (проверка адаптива)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "flet",
+            "args": [
+                "run",
+                "--web",
+                "--hot",
+                "src/main.py"
+            ],
+            "cwd": "${workspaceFolder}",
+            "python": "${workspaceFolder}/.venv/Scripts/python.exe",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "PYTHONIOENCODING": "utf-8",
+                "PYTHONUTF8": "1"
+            }
+        }
+    ]
+}

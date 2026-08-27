@@ -1,0 +1,66 @@
+name: Сообщить об ошибке
+description: Что-то не работает или работает не так
+labels: ["ошибка"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Спасибо, что нашли время написать. Чем точнее описание,
+        тем быстрее получится починить.
+
+  - type: textarea
+    id: what
+    attributes:
+      label: Что произошло
+      description: Опишите проблему своими словами.
+      placeholder: Нажимаю «Скачать», ничего не происходит.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Как повторить
+      description: По шагам, чтобы можно было воспроизвести.
+      placeholder: |
+        1. Вставил ссылку ...
+        2. Выбрал режим 720p
+        3. Нажал «Скачать»
+    validations:
+      required: true
+
+  - type: textarea
+    id: log
+    attributes:
+      label: Лог
+      description: >
+        Разверните кнопку состояния в правом верхнем углу и скопируйте лог.
+        Там обычно написана настоящая причина.
+      render: text
+
+  - type: input
+    id: version
+    attributes:
+      label: Версия программы
+      placeholder: "2.1.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Система
+      options:
+        - Windows 10
+        - Windows 11
+        - Linux
+        - macOS
+        - Android
+    validations:
+      required: true
+
+  - type: input
+    id: link
+    attributes:
+      label: Ссылка, на которой воспроизводится
+      description: Если проблема с конкретным видео — приложите ссылку.

@@ -1,0 +1,63 @@
+# Метаданные проекта и настройки сборки.
+# Отсюда `flet build` берёт зависимости, название, версию и иконки.
+
+[project]
+name = "downloader3000"
+version = "2.1.1"
+description = "Загрузчик видео и музыки на базе yt-dlp. Эльфийская сборка."
+readme = "README.md"
+requires-python = ">=3.10"
+
+# Общие зависимости — работают на всех платформах, включая Android.
+dependencies = [
+    "flet==0.86.5",
+    "yt-dlp>=2026.8.19",
+]
+
+[project.optional-dependencies]
+# Ставится только при разработке: flet build, hot reload и прочее.
+dev = ["flet[all]==0.86.5", "imageio-ffmpeg>=0.5.1"]
+
+[tool.flet]
+org = "tv.twitch.randinlonescu"
+product = "Downloader3000"
+company = "RandinLonescu"
+copyright = "© RandinLonescu"
+
+# Иконки и заставки берутся из этой папки.
+# Достаточно одного icon.png — остальные размеры сборщик сделает сам.
+app.module = "main"
+
+# --- Зависимости, добавляемые только для конкретных платформ ---
+#
+# imageio-ffmpeg привозит настоящий бинарник ffmpeg внутри пакета,
+# и благодаря ему настольные сборки работают без ручной установки.
+# Но колёс под Android у него нет — сборка APK падала с ошибкой
+# «No matching distribution found for imageio-ffmpeg».
+# Поэтому пакет подключается только там, где он существует.
+# Flet добавляет эти списки к общим project.dependencies.
+
+[tool.flet.windows]
+dependencies = ["imageio-ffmpeg>=0.5.1"]
+
+[tool.flet.linux]
+dependencies = ["imageio-ffmpeg>=0.5.1"]
+
+[tool.flet.macos]
+dependencies = ["imageio-ffmpeg>=0.5.1"]
+
+[tool.flet.splash]
+# Цвета заставки — из палитры сайта, чтобы запуск выглядел единообразно.
+color = "#0f0c29"
+dark_color = "#0f0c29"
+
+[tool.flet.android]
+# Скачанные файлы кладём в общую папку загрузок, поэтому нужен доступ к хранилищу.
+permissions = [
+    "android.permission.INTERNET",
+    "android.permission.WRITE_EXTERNAL_STORAGE",
+    "android.permission.READ_EXTERNAL_STORAGE",
+]
+
+[tool.flet.android.adaptive_icon]
+background_color = "#0f0c29"
