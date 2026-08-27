@@ -19,7 +19,10 @@ dependencies = [
 dev = ["flet[all]==0.86.5", "imageio-ffmpeg>=0.5.1"]
 
 [tool.flet]
-org = "tv.twitch.randinlonescu"
+# Идентификатор пакета собирается как org + имя проекта, то есть
+# com.randinlonescu.downloader3000. Менять его после публикации нельзя:
+# для Android это будет другое приложение, и обновление не встанет поверх.
+org = "com.randinlonescu"
 product = "Downloader3000"
 company = "RandinLonescu"
 copyright = "© RandinLonescu"
