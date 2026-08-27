@@ -199,18 +199,34 @@ def find_js_runtime() -> tuple[str, str | None] | None:
     YouTube — тот требует исполнения JS, чтобы отдать полный список.
 
     Порядок совпадает с приоритетом самого yt-dlp: deno, node, bun, quickjs.
-    Путь возвращаем только для найденного рядом с программой; для системного
-    достаточно имени, дальше yt-dlp разберётся сам.
+    Путь возвращаем только когда движок наш; для системного достаточно имени,
+    дальше yt-dlp разберётся сам.
 
     Замечание: у quickjs исполняемый файл называется `qjs`, а не `quickjs`.
+
+    Где ищем, по убыванию приоритета:
+      1. рядом с программой — пользователь положил движок вручную;
+      2. в PATH — установлен в системе;
+      3. встроенный QuickJS — он вшит в сборку и лежит в ресурсах.
+
+    Встроенный проверяется последним нарочно: если у человека стоит Node
+    или Deno, они быстрее решают JS-challenge, и правильнее взять их.
     """
     candidates = (("deno", "deno"), ("node", "node"), ("bun", "bun"), ("quickjs", "qjs"))
     for runtime, binary in candidates:
-        local = app_dir() / (binary + ".exe" if IS_WINDOWS else binary)
+        name = binary + ".exe" if IS_WINDOWS else binary
+        local = app_dir() / name
         if local.exists():
             return runtime, str(local)
         if shutil.which(binary):
             return runtime, None
+
+    # Запасной вариант, который всегда с собой: QuickJS вшит в сборку.
+    # Без него у пользователя без Node и Deno YouTube отдавал бы неполный
+    # список форматов, а часть роликов помечал как недоступные.
+    bundled = resource_dir() / "assets" / "runtimes" / ("qjs.exe" if IS_WINDOWS else "qjs")
+    if bundled.exists():
+        return "quickjs", str(bundled)
     return None
 
 

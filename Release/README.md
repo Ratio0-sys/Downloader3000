@@ -18,7 +18,7 @@ Downloader3000-<версия>-<платформа>-<архитектура>.<р�
 
 | Файл | Для чего |
 | --- | --- |
-| `Downloader3000-2.1.0-windows-x64.zip` | Windows 10 и новее |
+| `Downloader3000-2.1.0-windows-x64.exe` | Windows 10 и новее |
 | `Downloader3000-2.1.0-linux-x64.tar.gz` | Ubuntu 20.04+, Debian 11+ |
 | `Downloader3000-2.1.0-macos-universal.zip` | macOS 11 и новее |
 | `Downloader3000-2.1.0-android-arm64-v8a.apk` | большинство телефонов |
@@ -29,14 +29,34 @@ Downloader3000-<версия>-<платформа>-<архитектура>.<р�
 архитектуры. Для релиза лучше выкладывать раздельные — они собираются
 флагом `--split-per-abi`.
 
+## Что уже внутри сборок
+
+Пользователю не нужно ставить ничего дополнительно:
+
+| Компонент | Зачем |
+| --- | --- |
+| Python и yt-dlp | сам движок скачивания |
+| ffmpeg | склейка видео со звуком и конвертация в MP3 |
+| QuickJS | решает JS-challenge YouTube, иначе часть форматов недоступна |
+
+Если в системе уже есть Node, Deno или Bun — программа возьмёт их:
+они решают challenge быстрее встроенного QuickJS.
+
 ## Собрать всё
 
 ```bash
-flet build windows src
-flet build linux   src
-flet build macos   src
-flet build apk     src --split-per-abi
+python tools/fetch_quickjs.py     # движок JS, качается один раз
+
+flet pack src/main.py --name Downloader3000 --icon tools/app.ico     --distpath build_exe --add-data "src/assets;assets"     "--pyinstaller-build-args=--collect-all=imageio_ffmpeg" -y
+
+flet build apk src --split-per-abi
+flet build linux src
+flet build macos src
 ```
+
+Для Windows используется `flet pack`, а не `flet build windows`:
+второй требует Visual Studio с компонентом C++, первый обходится
+одним лишь Python.
 
 Проще запустить [workflow](../.github/workflows/build.yml) на GitHub:
 он собирает все платформы на нужных операционных системах и сам
