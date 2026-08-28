@@ -34,9 +34,11 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import gzip
 import io
 import sys
 import tarfile
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -50,7 +52,21 @@ TARGET_DIR = ROOT / "build_natives" / "android"
 
 QUICKJS_VERSION = "v0.16.2"
 QUICKJS_URL = "https://github.com/quickjs-ng/quickjs/releases/download"
+
+# Основной источник ffmpeg. Сборки там меньше, поэтому и APK выходит легче.
 FFMPEG_URL = "https://johnvansickle.com/ffmpeg/releases"
+
+# Запасной источник. Нужен не для красоты: основной — личный сайт одного
+# человека, и он ограничивает частоту запросов по адресу. На своей машине
+# всё качается, а сборка на GitHub падала через раз — соседние задания
+# приходят с тех же адресов и исчерпывают лимит.
+#
+# Запасной лежит на самом GitHub, откуда сборка и запускается, поэтому
+# упереться в лимит там нечему. Бинарник крупнее (49 МБ против 30),
+# но это цена за то, что релиз вообще собирается.
+FFMPEG_FALLBACK_URL = (
+    "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1"
+)
 
 # Архитектуры Android, под которые собираем.
 # Ключ — имя папки в APK, значения — что качать.
@@ -58,12 +74,17 @@ ABIS = {
     "arm64-v8a": {
         "qjs": "qjs-linux-aarch64",
         "ffmpeg": "ffmpeg-release-arm64-static.tar.xz",
+        "ffmpeg_fallback": "ffmpeg-linux-arm64.gz",
     },
     "armeabi-v7a": {
         "qjs": "qjs-linux-armv7",
         "ffmpeg": "ffmpeg-release-armhf-static.tar.xz",
+        "ffmpeg_fallback": "ffmpeg-linux-arm.gz",
     },
 }
+
+# Сколько раз пробовать один и тот же адрес, прежде чем сдаться.
+ATTEMPTS = 3
 
 
 def human(size: int) -> str:
@@ -75,8 +96,25 @@ def human(size: int) -> str:
     return f"{value:.1f} ТБ"
 
 
-def download(url: str, label: str) -> bytes | None:
-    """Качает в память: файлы до полусотни мегабайт, это допустимо."""
+def download(url: str, label: str, attempts: int = ATTEMPTS) -> bytes | None:
+    """
+    Качает по адресу, повторяя при неудаче.
+
+    Повторы нужны, потому что чаще всего мешает не поломка, а временный
+    отказ: сеть моргнула или сервер ограничил частоту запросов.
+    Пауза между попытками растёт, чтобы не долбить сервер подряд.
+    """
+    for attempt in range(1, attempts + 1):
+        data = _download_once(url, label if attempt == 1 else f"{label}, попытка {attempt}")
+        if data is not None:
+            return data
+        if attempt < attempts:
+            time.sleep(attempt * 5)
+    return None
+
+
+def _download_once(url: str, label: str) -> bytes | None:
+    """Одна попытка. Качает в память: файлы до полусотни мегабайт, это допустимо."""
     request = urllib.request.Request(url, headers={"User-Agent": "Downloader3000-build"})
     try:
         with urllib.request.urlopen(request, timeout=300) as response:
@@ -119,6 +157,31 @@ def extract_ffmpeg(archive: bytes) -> bytes | None:
     return None
 
 
+def fetch_ffmpeg(assets: dict) -> bytes | None:
+    """
+    Достаёт ffmpeg: сперва с основного источника, при неудаче с запасного.
+
+    Форматы у них разные — архив tar.xz с целой папкой внутри против
+    одиночного файла под gzip, — поэтому и разбираются по-разному.
+    """
+    archive = download(f"{FFMPEG_URL}/{assets['ffmpeg']}", "ffmpeg")
+    if archive is not None:
+        binary = extract_ffmpeg(archive)
+        if binary is not None:
+            return binary
+        print("  ffmpeg: в архиве не нашёлся исполняемый файл")
+
+    print("  ffmpeg: основной источник не дался, беру запасной с GitHub")
+    packed = download(f"{FFMPEG_FALLBACK_URL}/{assets['ffmpeg_fallback']}", "ffmpeg (запасной)")
+    if packed is None:
+        return None
+    try:
+        return gzip.decompress(packed)
+    except Exception as exc:
+        print(f"  не удалось распаковать запасной: {exc}")
+        return None
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Скачивает бинарники под Android")
     parser.add_argument("--force", action="store_true", help="перекачать, даже если файлы есть")
@@ -149,12 +212,11 @@ def main() -> int:
         if ffmpeg_path.exists() and not args.force:
             print(f"  ffmpeg: уже есть ({human(ffmpeg_path.stat().st_size)})")
         else:
-            archive = download(f"{FFMPEG_URL}/{assets['ffmpeg']}", "ffmpeg")
-            if archive is None:
-                return 1
-            binary = extract_ffmpeg(archive)
+            binary = fetch_ffmpeg(assets)
             if binary is None:
-                print("  ffmpeg: в архиве не нашёлся исполняемый файл")
+                return 1
+            if not binary.startswith(b"ELF"):
+                print("  ffmpeg: скачалось что-то не то — это не исполняемый файл")
                 return 1
             ffmpeg_path.write_bytes(binary)
             total_written += len(binary)
