@@ -16,16 +16,20 @@ dist/
 *.spec
 
 # --- готовые сборки ---
-# Сами файлы в репозиторий не идут: GitHub не принимает больше 100 МБ,
-# а APK весит 156. Бинарники публикуются на странице Releases.
-# Описание папки при этом версионируется.
+# Сами файлы в репозиторий не идут: GitHub не принимает больше 100 МБ.
+# Бинарники публикуются на странице Releases, а контрольные суммы
+# считаются при сборке релиза. Версионируется только описание папки.
 Release/*
 !Release/README.md
-!Release/SHA256SUMS.txt
 *.apk
 *.aab
 *.ipa
 *.msix
+
+# --- бинарники под Android ---
+# ffmpeg и QuickJS для телефона. Качаются tools/fetch_android_natives.py,
+# весят полсотни мегабайт — в репозиторий им не место.
+build_natives/
 
 # --- движок JavaScript ---
 # Качается скриптом tools/fetch_quickjs.py при сборке.
@@ -37,8 +41,6 @@ ffmpeg
 ffmpeg.exe
 ffprobe
 ffprobe.exe
-core.exe
-yt-dlp.exe
 
 # --- пользовательские данные ---
 # Правило нарочно с ведущим слешем и путём: просто `settings.json`
@@ -46,8 +48,6 @@ yt-dlp.exe
 /src/settings.json
 /settings.json
 settings.ini
-sourse/Saveged/
-sourse/Sounds/
 *.mp4
 *.mp3
 *.m4a

@@ -228,6 +228,9 @@ class Engine:
         self.last_file: str | None = None
         self._queue_total = 1        # сколько роликов в текущем задании
         self._queue_done = 0
+        # Прокси общий для всех запросов движка, поэтому живёт на объекте,
+        # а не ходит аргументом через каждый метод. Пусто — идём напрямую.
+        self.proxy: str = ""
         self.detect()
 
     # ========================================================== ОКРУЖЕНИЕ
@@ -261,6 +264,16 @@ class Engine:
         # Радиомиксы YouTube генерирует на лету, скачивать их целиком бессмысленно
         return not any(mark in low for mark in ("list=rd", "list=ul", "list=ytsearch"))
 
+    def _apply_proxy(self, opts: dict) -> None:
+        """
+        Добавляет прокси в настройки запроса, если он задан.
+
+        Отдельным методом, потому что путей два — чтение плейлиста
+        и само скачивание, — и забыть один из них слишком легко.
+        """
+        if self.proxy:
+            opts["proxy"] = self.proxy
+
     def scan_playlist(self, url: str, on_line: Callable[[str, str], None] | None = None
                       ) -> PlaylistInfo | None:
         """
@@ -285,6 +298,7 @@ class Engine:
             name, path = self.env.js_runtime
             opts["js_runtimes"] = {name: {"path": path} if path else {}}
             opts["remote_components"] = REMOTE_COMPONENTS
+        self._apply_proxy(opts)
 
         try:
             with yt_dlp.YoutubeDL(opts) as ydl:
@@ -292,7 +306,7 @@ class Engine:
         except DownloadError as exc:
             sink(_humanize(str(exc)), "error")
             return None
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             sink(tr("error.playlist_read", message=exc), "error")
             return None
 
@@ -469,6 +483,8 @@ class Engine:
             name, path = self.env.js_runtime
             opts["js_runtimes"] = {name: {"path": path} if path else {}}
 
+        self._apply_proxy(opts)
+
         if mode.is_audio:
             if self.env.has_ffmpeg:
                 # Постпроцессоры выполняются по очереди после скачивания:
@@ -619,7 +635,7 @@ class Engine:
         except DownloadError as exc:
             # Штатная ошибка yt-dlp — переводим на человеческий.
             return False, _humanize(str(exc))
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             # Ловим вообще всё: упасть с трейсбеком в лицо пользователю — худший исход.
             return False, tr("error.unexpected", message=exc)
 

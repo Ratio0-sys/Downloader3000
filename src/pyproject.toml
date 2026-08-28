@@ -3,7 +3,7 @@
 
 [project]
 name = "downloader3000"
-version = "2.1.1"
+version = "2.1.2"
 description = "Загрузчик видео и музыки на базе yt-dlp. Эльфийская сборка."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -19,7 +19,10 @@ dependencies = [
 dev = ["flet[all]==0.86.5", "imageio-ffmpeg>=0.5.1"]
 
 [tool.flet]
-org = "tv.twitch.randinlonescu"
+# Идентификатор пакета собирается как org + имя проекта, то есть
+# com.randinlonescu.downloader3000. Менять его после публикации нельзя:
+# для Android это будет другое приложение, и обновление не встанет поверх.
+org = "com.randinlonescu"
 product = "Downloader3000"
 company = "RandinLonescu"
 copyright = "© RandinLonescu"
@@ -52,6 +55,17 @@ color = "#0f0c29"
 dark_color = "#0f0c29"
 
 [tool.flet.android]
+# Обязательно для вшитых ffmpeg и QuickJS.
+#
+# По умолчанию Android не извлекает нативные библиотеки на диск, а читает
+# их прямо из APK. Для настоящих библиотек это быстрее и экономит место,
+# но у нас там лежат исполняемые файлы: запустить то, чего нет на диске,
+# нельзя. С этой настройкой библиотеки распаковываются при установке
+# в каталог, откуда запуск разрешён.
+#
+# Цена: установленное приложение занимает больше места на устройстве.
+legacy_packaging = true
+
 # Скачанные файлы кладём в общую папку загрузок, поэтому нужен доступ к хранилищу.
 permissions = [
     "android.permission.INTERNET",

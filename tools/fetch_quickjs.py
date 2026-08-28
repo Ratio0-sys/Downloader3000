@@ -27,6 +27,7 @@ Deno и Node весят десятки мегабайт и требуют уст
 from __future__ import annotations
 
 import argparse
+import contextlib
 import platform
 import subprocess
 import sys
@@ -39,10 +40,8 @@ from pathlib import Path
 # и в CI это выглядит как «сборка упала» — хотя не собралось ничего,
 # потому что скрипт умер на приветствии. Именно так и случилось однажды.
 for stream in (sys.stdout, sys.stderr):
-    try:
+    with contextlib.suppress(Exception):
         stream.reconfigure(encoding="utf-8", errors="replace")
-    except Exception:
-        pass
 
 ROOT = Path(__file__).resolve().parent.parent
 TARGET_DIR = ROOT / "src" / "assets" / "runtimes"

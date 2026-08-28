@@ -1,4 +1,0 @@
-fe366a95d80ce82c9216e9d5ac220b50b079f8711cbb14c5e01ca9271ba8422f  Downloader3000-2.1.0-android-arm64-v8a.apk
-d296d5c759cf5ae9ba968270ee8e974368787d82c3cafa02cca908fc9e940e8d  Downloader3000-2.1.0-android-armeabi-v7a.apk
-f200fdb06f1560fee7cf9ef3542b9da23cc8eea279fafc6cf9c600230f227518  Downloader3000-2.1.0-android-x86_64.apk
-8184dbf29d1fc27c349f8f704ccccb7eb252f03e250ddd0e9a54677876e4ebdd  Downloader3000-2.1.0-windows-x64.exe

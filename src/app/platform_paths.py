@@ -93,6 +93,46 @@ def android_storage_dir() -> Path | None:
     return None
 
 
+def android_native_lib_dir() -> Path | None:
+    """
+    Каталог нативных библиотек APK.
+
+    Это единственное место на Android, откуда приложению разрешено
+    запускать файлы: с Android 10 действует защита W^X, и запуск чего-либо
+    из папки данных приложения блокируется. В каталог нативных библиотек
+    файлы попадают при установке APK и получают право на исполнение.
+
+    Путь туда выглядит примерно так:
+        /data/app/~~<случайное>/<пакет>-<случайное>/lib/arm64
+
+    Угадать его нельзя — в середине две случайные строки, которые меняются
+    при каждой переустановке. Поэтому смотрим в `/proc/self/maps`: там
+    перечислены все загруженные в процесс библиотеки вместе с полными
+    путями. Достаточно найти любую из них и взять её папку.
+
+    Способ надёжен потому, что к моменту вызова процесс уже загрузил
+    свои библиотеки — иначе Python бы не работал.
+    """
+    if not IS_ANDROID:
+        return None
+    try:
+        with open("/proc/self/maps", encoding="utf-8", errors="ignore") as maps:
+            for line in maps:
+                marker = line.find("/data/app/")
+                if marker < 0 or not line.rstrip().endswith(".so"):
+                    continue
+                candidate = Path(line[marker:].strip()).parent
+                if candidate.name.startswith("lib") or candidate.parent.name == "lib":
+                    return candidate
+                if candidate.is_dir():
+                    return candidate
+    except Exception:
+        # Нет доступа к /proc или формат неожиданный — не беда,
+        # просто останемся без вшитых бинарников.
+        pass
+    return None
+
+
 def _first_writable(*candidates: Path, probe_suffix: str = ".txt") -> Path:
     """
     Возвращает первую папку из списка, куда реально получается писать.
@@ -230,6 +270,14 @@ def find_ffmpeg() -> str | None:
     `ffmpeg-win-x86_64-v7.1.exe`, и по имени папки yt-dlp его не опознаёт.
     Проверено напрямую: location=папка → not available, location=файл → available.
     """
+    # На Android бинарник вшит в APK и лежит среди нативных библиотек
+    # под именем libffmpeg.so — только оттуда его разрешено запускать.
+    native = android_native_lib_dir()
+    if native:
+        bundled = native / "libffmpeg.so"
+        if bundled.exists():
+            return str(bundled)
+
     names = ("ffmpeg.exe", "ffmpeg") if IS_WINDOWS else ("ffmpeg",)
     for name in names:
         local = app_dir() / name
@@ -276,6 +324,14 @@ def find_js_runtime() -> tuple[str, str | None] | None:
     Встроенный проверяется последним нарочно: если у человека стоит Node
     или Deno, они быстрее решают JS-challenge, и правильнее взять их.
     """
+    # На Android движок вшит в APK под именем libqjs.so и лежит среди
+    # нативных библиотек. Проверяем его первым: ничего другого там нет.
+    native = android_native_lib_dir()
+    if native:
+        bundled = native / "libqjs.so"
+        if bundled.exists():
+            return "quickjs", str(bundled)
+
     candidates = (("deno", "deno"), ("node", "node"), ("bun", "bun"), ("quickjs", "qjs"))
     for runtime, binary in candidates:
         name = binary + ".exe" if IS_WINDOWS else binary
