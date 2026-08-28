@@ -39,6 +39,8 @@
   "hint.scanning": "Reading the playlist…",
   "hint.playlist_settings": "Playlists are picked with checkboxes right under the link field",
   "hint.dns": "If your provider hides a site's address, the app asks Cloudflare for it over an encrypted channel",
+  "hint.proxy": "A proxy helps when your provider blocks the connection itself: enter the address of your bypass tool and downloads will go through it",
+  "hint.proxy_placeholder": "socks5://127.0.0.1:1080",
   "status.ready": "Ready.",
   "status.paste_url": "Paste a link.",
   "status.bad_url": "The link must start with http:// or https://",
@@ -68,6 +70,7 @@
   "settings.language": "Language",
   "settings.theme": "Appearance",
   "settings.dns": "Blocking bypass",
+  "settings.proxy": "Proxy",
   "playlist.counter": "{chosen} of {total} selected",
   "playlist.duration_h": "{hours} h {minutes} min",
   "playlist.duration_m": "{minutes} min",
@@ -101,5 +104,7 @@
   "theme.light": "Light",
   "hint.url_mobile": "Paste a link and tap DOWNLOAD",
   "dns.on": "Blocking bypass is on: addresses of unreachable sites are resolved over HTTPS.",
-  "dns.off": "Blocking bypass is off."
+  "dns.off": "Blocking bypass is off.",
+  "proxy.on": "Downloading through proxy {address}.",
+  "proxy.off": "Proxy cleared, downloading directly."
 }

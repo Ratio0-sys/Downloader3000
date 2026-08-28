@@ -39,6 +39,7 @@ class Settings:
     language: str = ""          # код языка; пусто = определить по системе
     theme: str = "original"     # оформление: original / dark / light
     dns_bypass: bool = True     # обходить блокировку по именам (см. dns_bypass.py)
+    proxy: str = ""             # прокси для скачивания; пусто = напрямую
 
     def __post_init__(self) -> None:
         """Датакласс зовёт этот метод сразу после создания — доопределяем пути."""

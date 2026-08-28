@@ -64,6 +64,23 @@ from . import components as c
 # Версия показывается в бейдже шапки.
 APP_VERSION = "2.1.2"
 
+
+def normalize_proxy(value: str) -> str:
+    """
+    Приводит адрес прокси к виду, понятному yt-dlp.
+
+    Без схемы yt-dlp адрес не примет, а набирать `socks5://` руками
+    на телефоне мучительно. Поэтому голые `127.0.0.1:1080` дополняем
+    сами — программы обхода почти всегда поднимают именно SOCKS5.
+    Что получилось в итоге, пишем в лог, чтобы не гадать.
+    """
+    value = (value or "").strip()
+    if not value:
+        return ""
+    if "://" not in value:
+        return f"socks5://{value}"
+    return value
+
 # Ссылки автора для футера.
 LINKS = [
     ("🟣  Twitch", "https://www.twitch.tv/randinlonescu"),
@@ -89,6 +106,7 @@ class DownloaderApp:
         self.page = page
         self.engine = Engine()              # осматривает систему прямо в конструкторе
         self.cfg = Settings.load()
+        self.engine.proxy = normalize_proxy(self.cfg.proxy)
         self.mode = self.cfg.mode_enum      # режим, выбранный в прошлый раз
         self.busy = False                   # идёт ли сейчас скачивание
         self._lock = threading.Lock()       # защищает лог от одновременной записи
@@ -563,6 +581,34 @@ class DownloaderApp:
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
         )
 
+        # Прокси. Поле, а не кнопки: адрес у каждого свой, угадать нечего.
+        # Значение сохраняется по уходу с поля и по Enter, а не на каждой
+        # букве: на телефоне это лишняя запись файла при каждом нажатии.
+        proxy_field = ft.TextField(
+            value=self.cfg.proxy,
+            hint_text=tr("hint.proxy_placeholder"),
+            hint_style=ft.TextStyle(color=t.FAINT, size=t.FS_SMALL),
+            text_style=ft.TextStyle(color=t.TEXT, size=t.FS_SMALL, font_family=t.FONT),
+            bgcolor=ft.Colors.with_opacity(0.06, ft.Colors.WHITE),
+            border_color=t.STROKE,
+            focused_border_color=t.GOLD_EDGE,
+            cursor_color=t.GOLD,
+            border_radius=t.R_CARD,
+            content_padding=ft.Padding(t.px(12), t.px(8), t.px(12), t.px(8)),
+            expand=True,
+            on_blur=lambda e: self._set_proxy(e.control.value),
+            on_submit=lambda e: self._set_proxy(e.control.value),
+        )
+        proxy_row = ft.Row(
+            [
+                ft.Text(tr("settings.proxy"), size=t.FS_SMALL, color=t.TEXT,
+                        font_family=t.FONT),
+                proxy_field,
+            ],
+            spacing=t.px(12),
+            vertical_alignment=ft.CrossAxisAlignment.CENTER,
+        )
+
         return ft.Container(
             content=ft.Column(
                 [
@@ -573,8 +619,11 @@ class DownloaderApp:
                     language_row,
                     ft.Divider(height=t.px(14), color=t.STROKE),
                     dns_row,
-                    ft.Divider(height=t.px(14), color=t.STROKE),
                     c.hint(tr("hint.dns")),
+                    ft.Divider(height=t.px(14), color=t.STROKE),
+                    proxy_row,
+                    c.hint(tr("hint.proxy")),
+                    ft.Divider(height=t.px(14), color=t.STROKE),
                     c.hint(tr("hint.playlist_settings")),
                 ],
                 spacing=0,
@@ -638,6 +687,24 @@ class DownloaderApp:
             dns_bypass.disable()
         if announce:
             self._log(tr("dns.on") if self.cfg.dns_bypass else tr("dns.off"), "info")
+
+    def _set_proxy(self, value: str) -> None:
+        """
+        Запоминает адрес прокси и сразу отдаёт его движку.
+
+        Экран здесь НЕ пересобирается: пересборка отняла бы фокус у поля,
+        и продолжить набор было бы нельзя.
+        """
+        value = (value or "").strip()
+        if value == self.cfg.proxy:
+            return
+        self.cfg.proxy = value
+        self.cfg.save()
+        self.engine.proxy = normalize_proxy(value)
+        if self.engine.proxy:
+            self._log(tr("proxy.on", address=self.engine.proxy), "info")
+        else:
+            self._log(tr("proxy.off"), "info")
 
     def _set_dns_bypass(self, state: bool) -> None:
         """Включает или выключает обход блокировки по имени сайта."""
