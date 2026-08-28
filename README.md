@@ -5,7 +5,7 @@
 **Вставил ссылку — получил файл.**
 Видео и музыка с YouTube и сотен других сайтов.
 
-[![Версия](https://img.shields.io/badge/версия-2.2.0-ffd700?style=flat-square)](https://github.com/Ratio0-sys/Downloader3000/releases/latest)
+[![Версия](https://img.shields.io/badge/версия-2.1.2-ffd700?style=flat-square)](https://github.com/Ratio0-sys/Downloader3000/releases/latest)
 [![Платформы](https://img.shields.io/badge/Windows%20·%20Linux%20·%20macOS%20·%20Android-302b63?style=flat-square)](https://ratio0-sys.github.io/Downloader3000/)
 [![Python](https://img.shields.io/badge/Python-3.12+-0f0c29?style=flat-square)](https://www.python.org/)
 [![Лицензия](https://img.shields.io/badge/лицензия-MIT-24243e?style=flat-square)](LICENSE)

@@ -3,7 +3,7 @@
 Формат основан на [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/),
 нумерация версий — по [семантическому версионированию](https://semver.org/lang/ru/).
 
-## [2.2.0] — 2026-08-27
+## [2.1.2] — 2026-08-28
 
 ### Добавлено
 
@@ -187,7 +187,7 @@ Android 15, подключён по отладке.
   требует Python 3.10+, который на этих системах не устанавливается.
   Минимальная планка — Windows 10.
 
-[2.2.0]: https://github.com/Ratio0-sys/Downloader3000/releases/tag/v2.2.0
+[2.1.2]: https://github.com/Ratio0-sys/Downloader3000/releases/tag/v2.1.2
 [2.1.1]: https://github.com/Ratio0-sys/Downloader3000/releases/tag/v2.1.1
 [2.1.0]: https://github.com/Ratio0-sys/Downloader3000/releases/tag/v2.1.0
 [2.0.0]: https://github.com/Ratio0-sys/Downloader3000/releases/tag/v2.0.0

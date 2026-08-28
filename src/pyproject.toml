@@ -3,7 +3,7 @@
 
 [project]
 name = "downloader3000"
-version = "2.2.0"
+version = "2.1.2"
 description = "Загрузчик видео и музыки на базе yt-dlp. Эльфийская сборка."
 readme = "README.md"
 requires-python = ">=3.10"

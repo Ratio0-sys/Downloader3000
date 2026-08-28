@@ -62,7 +62,7 @@ from ..settings import Settings
 from . import components as c
 
 # Версия показывается в бейдже шапки.
-APP_VERSION = "2.2.0"
+APP_VERSION = "2.1.2"
 
 # Ссылки автора для футера.
 LINKS = [

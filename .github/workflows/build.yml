@@ -117,8 +117,8 @@ jobs:
           --name Downloader3000
           --icon tools/app.ico
           --product-name "Downloader3000"
-          --product-version "2.2.0"
-          --file-version "2.2.0"
+          --product-version "2.1.2"
+          --file-version "2.1.2"
           --company-name "RandinLonescu"
           --copyright "(c) RandinLonescu"
           --distpath build/windows
@@ -224,8 +224,9 @@ jobs:
 
             ### Известные ограничения
 
-            На Android недоступен ffmpeg, поэтому склейка потоков
-            и конвертация в MP3 там не работают.
+            APK собирается только под arm64 и arm32 — под x86_64 бинарники
+            ffmpeg и QuickJS не кладутся, поэтому в эмуляторе склейка
+            и MP3 не работают. На настоящих телефонах это не мешает.
 
             Windows 7 и 8.1 не поддерживаются: современный yt-dlp требует
             Python 3.10+, который на них не устанавливается.
