@@ -43,6 +43,7 @@
 """
 from __future__ import annotations
 
+import contextlib
 import os
 import subprocess
 import threading
@@ -51,6 +52,7 @@ from pathlib import Path
 
 import flet as ft
 
+from .. import dns_bypass
 from .. import platform_paths as pp
 from .. import theme as t
 from ..engine import Engine, Mode, PlaylistInfo, Progress
@@ -128,6 +130,10 @@ class DownloaderApp:
 
         self._configure_window()
         self._build()
+        # Обход ставим после сборки экрана: он пишет в лог, а лог до этого
+        # момента ещё не существует. Само включение мгновенное — подмена
+        # функции разрешения имён, без единого запроса в сеть.
+        self._apply_dns_bypass(announce=False)
         self._report_environment()
 
     # ================================================================== ОКНО
@@ -535,6 +541,28 @@ class DownloaderApp:
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
         )
 
+        # Обход блокировки по именам. Кнопка нужна на случай, когда обход
+        # мешает: в некоторых сетях внутренние адреса известны только
+        # местному серверу имён, и публичный ответит «нет такого сайта».
+        dns_row = ft.Row(
+            [
+                ft.Text(tr("settings.dns"), size=t.FS_SMALL, color=t.TEXT,
+                        font_family=t.FONT),
+                ft.Container(expand=True),
+                *[
+                    c.GhostButton(
+                        tr("btn.on") if state else tr("btn.off"),
+                        partial(self._set_dns_bypass, state),
+                        tint=t.GOLD if state == self.cfg.dns_bypass else t.MUTED,
+                        width=t.px(96), height=t.px(34),
+                    ).control
+                    for state in (True, False)
+                ],
+            ],
+            spacing=t.px(8),
+            vertical_alignment=ft.CrossAxisAlignment.CENTER,
+        )
+
         return ft.Container(
             content=ft.Column(
                 [
@@ -544,6 +572,9 @@ class DownloaderApp:
                     ft.Divider(height=t.px(14), color=t.STROKE),
                     language_row,
                     ft.Divider(height=t.px(14), color=t.STROKE),
+                    dns_row,
+                    ft.Divider(height=t.px(14), color=t.STROKE),
+                    c.hint(tr("hint.dns")),
                     c.hint(tr("hint.playlist_settings")),
                 ],
                 spacing=0,
@@ -590,6 +621,31 @@ class DownloaderApp:
         t.set_scale(value)
         self.cfg.ui_scale = t.SCALE
         self.cfg.save()
+        self._rebuild()
+
+    def _apply_dns_bypass(self, announce: bool = True) -> None:
+        """
+        Приводит обход блокировки в состояние, записанное в настройках.
+
+        Вынесено отдельно, потому что зовётся из двух мест: при запуске
+        и при переключении кнопки. `announce` гасит запись в лог на старте —
+        иначе первая строка лога всегда была бы про обход, а не про то,
+        готова программа к работе или нет.
+        """
+        if self.cfg.dns_bypass:
+            dns_bypass.enable(self._log)
+        else:
+            dns_bypass.disable()
+        if announce:
+            self._log(tr("dns.on") if self.cfg.dns_bypass else tr("dns.off"), "info")
+
+    def _set_dns_bypass(self, state: bool) -> None:
+        """Включает или выключает обход блокировки по имени сайта."""
+        if state == self.cfg.dns_bypass:
+            return
+        self.cfg.dns_bypass = state
+        self.cfg.save()
+        self._apply_dns_bypass()
         self._rebuild()
 
     def _set_theme(self, key: str) -> None:
@@ -770,7 +826,7 @@ class DownloaderApp:
         try:
             target.mkdir(parents=True, exist_ok=True)
             if pp.IS_WINDOWS:
-                os.startfile(str(target))                  # noqa: S606
+                os.startfile(str(target))
             elif pp.IS_MACOS:
                 subprocess.Popen(["open", str(target)])
             elif pp.IS_ANDROID:
@@ -905,7 +961,5 @@ class DownloaderApp:
         Вызов может прилететь из рабочего потока или уже после закрытия окна —
         в обоих случаях падать нельзя, скачивание тут ни при чём.
         """
-        try:
+        with contextlib.suppress(Exception):
             self.page.update()
-        except Exception:
-            pass

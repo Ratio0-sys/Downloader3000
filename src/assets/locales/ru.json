@@ -31,11 +31,14 @@
   "btn.status_tooltip": "Показать состояние и лог",
   "btn.zoom_in": "Увеличить",
   "btn.zoom_out": "Уменьшить",
+  "btn.on": "Вкл",
+  "btn.off": "Выкл",
   "hint.url": "Ссылку можно просто вставить — Enter запускает скачивание",
   "hint.url_placeholder": "https://youtu.be/…",
   "hint.playlist": "🎞  Это плейлист — можно выбрать, что качать",
   "hint.scanning": "Читаю плейлист…",
   "hint.playlist_settings": "Плейлисты выбираются галочками прямо под полем ссылки",
+  "hint.dns": "Если провайдер не отдаёт адрес сайта, программа спросит его у Cloudflare по шифрованному каналу",
   "status.ready": "Готов к работе.",
   "status.paste_url": "Вставь ссылку.",
   "status.bad_url": "Ссылка должна начинаться с http:// или https://",
@@ -64,6 +67,7 @@
   "settings.scale": "Размер интерфейса",
   "settings.language": "Язык",
   "settings.theme": "Оформление",
+  "settings.dns": "Обход блокировки",
   "playlist.counter": "выбрано {chosen} из {total}",
   "playlist.duration_h": "{hours} ч {minutes} мин",
   "playlist.duration_m": "{minutes} мин",
@@ -95,5 +99,7 @@
   "theme.original": "Оригинал",
   "theme.dark": "Тёмная",
   "theme.light": "Светлая",
-  "hint.url_mobile": "Вставьте ссылку и нажмите СКАЧАТЬ"
+  "hint.url_mobile": "Вставьте ссылку и нажмите СКАЧАТЬ",
+  "dns.on": "Обход блокировки включён: адреса недоступных сайтов спрашиваем по HTTPS.",
+  "dns.off": "Обход блокировки выключен."
 }

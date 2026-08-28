@@ -19,6 +19,7 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import hashlib
 import re
 import shutil
@@ -30,10 +31,8 @@ from pathlib import Path
 # Скрипт печатает по-русски: на Windows консоль по умолчанию не в UTF-8,
 # и print с кириллицей уронил бы процесс с UnicodeEncodeError.
 for _stream in (sys.stdout, sys.stderr):
-    try:
+    with contextlib.suppress(Exception):
         _stream.reconfigure(encoding="utf-8", errors="replace")
-    except Exception:
-        pass
 
 ROOT = Path(__file__).resolve().parent.parent
 RELEASE = ROOT / "Release"

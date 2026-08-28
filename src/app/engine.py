@@ -292,7 +292,7 @@ class Engine:
         except DownloadError as exc:
             sink(_humanize(str(exc)), "error")
             return None
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             sink(tr("error.playlist_read", message=exc), "error")
             return None
 
@@ -619,7 +619,7 @@ class Engine:
         except DownloadError as exc:
             # Штатная ошибка yt-dlp — переводим на человеческий.
             return False, _humanize(str(exc))
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             # Ловим вообще всё: упасть с трейсбеком в лицо пользователю — худший исход.
             return False, tr("error.unexpected", message=exc)
 

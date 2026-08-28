@@ -15,9 +15,9 @@ from pathlib import Path
 # про папку src/, и `from app...` не находится. Добавляем её в путь руками.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-import flet as ft  # noqa: E402
+import flet as ft
 
-from app.ui.screen import DownloaderApp  # noqa: E402
+from app.ui.screen import DownloaderApp
 
 
 def main(page: ft.Page) -> None:

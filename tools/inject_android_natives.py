@@ -31,15 +31,14 @@ Flet пересоздаёт проект Flutter только когда мен�
 from __future__ import annotations
 
 import argparse
+import contextlib
 import shutil
 import sys
 from pathlib import Path
 
 for _stream in (sys.stdout, sys.stderr):
-    try:
+    with contextlib.suppress(Exception):
         _stream.reconfigure(encoding="utf-8", errors="replace")
-    except Exception:
-        pass
 
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE_DIR = ROOT / "build_natives" / "android"
