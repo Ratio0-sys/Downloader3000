@@ -101,10 +101,21 @@ jobs:
         # оказались бы хуже собранных руками.
         run: python tools/fetch_quickjs.py
 
-      - name: Поставить PyInstaller
-        # Нужен только для Windows, см. следующий шаг.
+      - name: Поставить PyInstaller и зависимости приложения
+        # Только для Windows, и оба пункта обязательны.
+        #
+        # PyInstaller — потому что им собирается exe, см. следующий шаг.
+        #
+        # Зависимости — потому что `flet pack` кладёт в сборку то, что
+        # стоит в окружении, а не то, что записано в pyproject.toml.
+        # Остальные платформы собирает `flet build`, и он читает
+        # зависимости сам — поэтому нехватку было видно только на Windows,
+        # и только при запуске: exe собирался, а падал уже у человека
+        # с «No module named 'yt_dlp'».
+        #
+        # Версии обязаны совпадать с src/pyproject.toml.
         if: matrix.target == 'windows'
-        run: pip install pyinstaller
+        run: pip install pyinstaller "yt-dlp>=2026.8.19" "imageio-ffmpeg>=0.5.1"
 
       - name: Собрать Windows через PyInstaller
         # `flet build windows` требует Visual Studio с компонентом C++
